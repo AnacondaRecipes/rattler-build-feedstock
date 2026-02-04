@@ -12,7 +12,7 @@ source:
 build:
   number: 0
   script:
-    - export OPENSSL_DIR="$PREFIX"
+    - export OPENSSL_DIR="$PREFIX"  # [unix]
     - cargo install --locked --bin rattler-build --root ${PREFIX} --path . --no-track
     - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
 
