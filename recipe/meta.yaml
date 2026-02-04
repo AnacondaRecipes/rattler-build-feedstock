@@ -6,11 +6,15 @@ package:
   version: {{ version }}
 
 source:
-  url: https://github.com/prefix-dev/rattler-build/archive/refs/tags/v${{ version }}.tar.gz
+  url: https://github.com/prefix-dev/rattler-build/archive/refs/tags/v{{ version }}.tar.gz
   sha256: eba4ab0caac256190ad9386deedd9ad8870bb19640f3d05bf6aff899ce284dd2
 
 build:
   number: 0
+  script:
+    - export OPENSSL_DIR="$PREFIX"
+    - cargo install --locked --bin rattler-build --root ${PREFIX} --path . --no-track
+    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
 
 requirements:
   build:
