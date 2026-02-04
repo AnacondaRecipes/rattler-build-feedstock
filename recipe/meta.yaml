@@ -1,0 +1,54 @@
+{% set name = "rattler-build" %}
+{% set version = "0.55.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/prefix-dev/rattler-build/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: eba4ab0caac256190ad9386deedd9ad8870bb19640f3d05bf6aff899ce284dd2
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - {{ compiler('rust') }}
+    - cargo-bundle-licenses
+    - {{ compiler('c') }}
+    - {{ stdlib('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - openssl  # [linux]
+  run:
+    - patchelf  # [linux]
+
+tests:
+  files:
+    - rattler-build --help
+  commands:
+    - pixi --help
+    - test ! -f ${PREFIX}/bin/generate-cli-docs  # [unix]
+    # check that we can fetch the sourcecode for slepc
+    - rattler-build build --recipe ./test-recipe/check.yaml  # [unix]
+    - rattler-build build --recipe ./test-recipe/check.yaml --output-dir %PREFIX%/out  # [win]
+
+
+about:
+  home: https://github.com/prefix-dev/rattler-build
+  dev_url: https://github.com/prefix-dev/rattler-build
+  doc_url: https://rattler.build
+  summary: rattler-build is the universal conda package builder for Windows, macOS and Linux
+  description: |
+    The rattler-build tooling and library creates cross-platform relocatable binaries / packages 
+    from a simple recipe format.
+    The recipe format is heavily inspired by conda-build and boa, and the output of a regular
+    rattler-build run is a package that can be installed using mamba, conda or rattler.
+  license: BSD-3-Clause
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+    - CONDA_BUILD_LICENSE.txt
+  license_family: BSD
+
