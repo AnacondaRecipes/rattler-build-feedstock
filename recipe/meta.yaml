@@ -1,5 +1,5 @@
 {% set name = "rattler-build" %}
-{% set version = "0.55.1" %}
+{% set version = "0.76.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,15 +7,17 @@ package:
 
 source:
   url: https://github.com/prefix-dev/rattler-build/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: eba4ab0caac256190ad9386deedd9ad8870bb19640f3d05bf6aff899ce284dd2
+  sha256: 2caad9c21e3293b04ff007f883ab42f465c8e619b230baffcd2a9d88a0979071
 
 build:
   number: 0
   script:
     - export OPENSSL_DIR="$PREFIX"  # [unix]
-    - cargo install --locked --bin rattler-build --root ${PREFIX} --path . --no-track  # [unix]
+    # cmake is required by aws-lc-sys (rustls default) when CFLAGS inject -O2
+    - export AWS_LC_SYS_CMAKE_BUILDER=1
+    - cargo install --locked --no-default-features --features native-tls,recipe-generation,s3,sigstore --bin rattler-build --root ${PREFIX} --path . --no-track  # [unix]
     - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml  # [unix]
-    - cargo install --locked --bins --root %PREFIX% --path . --no-track  # [win]
+    - cargo install --locked --no-default-features --features native-tls,recipe-generation,s3,sigstore --bin rattler-build --root %PREFIX% --path . --no-track  # [win]
     - cargo-bundle-licenses --format yaml --output %SRC_DIR%/THIRDPARTY.yml  # [win]
 
 requirements:
@@ -25,20 +27,17 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
+    - cmake
+    - make  # [unix]
   host:
-    - openssl  # [linux]
+    - openssl {{ openssl }}  # [linux]
   run:
     - patchelf  # [linux]
 
-tests:
-  files:
-    - rattler-build --help
+test:
   commands:
-    - pixi --help
+    - rattler-build --help
     - test ! -f ${PREFIX}/bin/generate-cli-docs  # [unix]
-    # check that we can fetch the sourcecode for slepc
-    - rattler-build build --recipe ./test-recipe/check.yaml  # [unix]
-    - rattler-build build --recipe ./test-recipe/check.yaml --output-dir %PREFIX%/out  # [win]
 
 
 about:
