@@ -17,6 +17,11 @@ if [[ "${target_platform}" == linux-aarch64 || "${target_platform}" == osx-arm64
   export JEMALLOC_SYS_WITH_LG_PAGE=16
 fi
 
+# tikv-jemalloc-sys (performance feature) runs nested `make` that cannot
+# inherit cargo's jobserver: "make: *** read jobs pipe: Resource temporarily unavailable"
+unset CARGO_MAKEFLAGS
+unset MAKEFLAGS
+
 cargo auditable install --locked \
   --no-default-features \
   --features native-tls,recipe-generation,s3,sigstore,performance \
