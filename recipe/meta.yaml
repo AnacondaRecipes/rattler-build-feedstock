@@ -11,6 +11,12 @@ source:
 
 build:
   number: 0
+  # cargo produces a rust binary; C++ compiler is build-only (aws-lc-sys cmake).
+  # overdepending: libstdcxx / libcxx / vc14_runtime never appear in NEEDED.
+  ignore_run_exports_from:
+    - {{ compiler('cxx') }}
+  ignore_run_exports:
+    - ucrt  # [win]
 
 requirements:
   build:
