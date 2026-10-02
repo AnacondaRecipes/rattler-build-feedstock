@@ -17,10 +17,18 @@ if [[ "${target_platform}" == linux-aarch64 || "${target_platform}" == osx-arm64
   export JEMALLOC_SYS_WITH_LG_PAGE=16
 fi
 
-# tikv-jemalloc-sys (performance feature) runs nested `make` that cannot
-# inherit cargo's jobserver: "make: *** read jobs pipe: Resource temporarily unavailable"
-unset CARGO_MAKEFLAGS
-unset MAKEFLAGS
+# tikv-jemalloc-sys (performance feature) runs nested `make`. Cargo re-injects
+# MAKEFLAGS=--jobserver-fds even after unset; GNU make then EAGAINs:
+#   make: *** read jobs pipe: Resource temporarily unavailable
+REAL_MAKE="$(command -v make)"
+mkdir -p "${SRC_DIR}/.make-wrap"
+cat > "${SRC_DIR}/.make-wrap/make" << EOF
+#!/usr/bin/env bash
+unset MAKEFLAGS MFLAGS
+exec "${REAL_MAKE}" "\$@"
+EOF
+chmod +x "${SRC_DIR}/.make-wrap/make"
+export PATH="${SRC_DIR}/.make-wrap:${PATH}"
 
 cargo auditable install --locked \
   --no-default-features \
