@@ -20,9 +20,11 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
+    # aws-lc-sys (sigstore/s3) needs a C/C++ cmake build, not only rustc
     - cmake
     - make  # [unix]
   host:
+    # CBC pin so native-tls links the same openssl pkgs/main ships, not "any"
     - openssl {{ openssl }}  # [linux]
   run:
     - patchelf  # [linux]
@@ -36,7 +38,9 @@ test:
     - test -f $PREFIX/share/zsh/site-functions/_rattler-build  # [unix]
     - test -f $PREFIX/share/bash-completion/completions/rattler-build  # [unix]
     - test -f $PREFIX/share/fish/vendor_completions.d/rattler-build.fish  # [unix]
-    # check that we can fetch the sourcecode for slepc
+    # 0.55.1 already ran this; it is the only test that rattler-build can
+    # download a remote source. conda-forge dropped it; we keep it because
+    # the slepc tarball still returns HTTP 200 and PBP workers can fetch.
     - rattler-build build --recipe ./test-recipe/check.yaml  # [unix]
     - rattler-build build --recipe ./test-recipe/check.yaml --output-dir %PREFIX%/out  # [win]
 

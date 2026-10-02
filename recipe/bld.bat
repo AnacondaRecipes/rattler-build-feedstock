@@ -1,7 +1,8 @@
 @echo on
 
 set CARGO_PROFILE_RELEASE_STRIP=symbols
-REM cmake is required by aws-lc-sys when CFLAGS inject -O2 (overrides -O0 in jitterentropy)
+REM aws-lc-sys jitterentropy.c must stay -O0; conda CFLAGS inject -O2.
+REM cmake builder honors that; the default cc-rs path does not.
 set AWS_LC_SYS_CMAKE_BUILDER=1
 set CARGO_PROFILE_RELEASE_LTO=thin
 
@@ -9,6 +10,7 @@ REM path too long for pixi_config subpackage, https://github.com/prefix-dev/pixi
 set CARGO_HOME=C:\.cargo
 md %CARGO_HOME%
 
+REM native-tls (not rustls) so we do not vendor aws-lc; performance = jemalloc
 cargo auditable install --locked --no-default-features --features native-tls,recipe-generation,s3,sigstore,performance --bin rattler-build --root %PREFIX% --path . --no-track
 if errorlevel 1 exit 1
 
