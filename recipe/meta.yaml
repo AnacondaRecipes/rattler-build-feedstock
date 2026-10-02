@@ -11,27 +11,6 @@ source:
 
 build:
   number: 0
-  script:
-    - export CARGO_PROFILE_RELEASE_STRIP=symbols
-    # cmake is required by aws-lc-sys when CFLAGS inject -O2 (overrides -O0 in jitterentropy)
-    - export AWS_LC_SYS_CMAKE_BUILDER=1
-    - export CARGO_PROFILE_RELEASE_LTO=fat   # [osx and arm64]
-    - export CARGO_PROFILE_RELEASE_LTO=thin  # [not (osx and arm64)]
-    - export JEMALLOC_SYS_WITH_LG_PAGE=16    # [aarch64]
-    - export OPENSSL_DIR="$PREFIX"  # [unix]
-    - cargo auditable install --locked --no-default-features --features native-tls,recipe-generation,s3,sigstore,performance --bin rattler-build --root ${PREFIX} --path . --no-track  # [unix]
-    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml  # [unix]
-    - mkdir -p $PREFIX/share/zsh/site-functions  # [unix]
-    - $PREFIX/bin/rattler-build completion --shell zsh > $PREFIX/share/zsh/site-functions/_rattler-build  # [unix]
-    - mkdir -p $PREFIX/share/bash-completion/completions  # [unix]
-    - $PREFIX/bin/rattler-build completion --shell bash > $PREFIX/share/bash-completion/completions/rattler-build  # [unix]
-    - mkdir -p $PREFIX/share/fish/vendor_completions.d  # [unix]
-    - $PREFIX/bin/rattler-build completion --shell fish > $PREFIX/share/fish/vendor_completions.d/rattler-build.fish  # [unix]
-    # path too long for pixi_config subpackage, https://github.com/prefix-dev/pixi/issues/3691
-    - set CARGO_HOME=C:\.cargo  # [win]
-    - md %CARGO_HOME%  # [win]
-    - cargo auditable install --locked --no-default-features --features native-tls,recipe-generation,s3,sigstore,performance --bin rattler-build --root %PREFIX% --path . --no-track  # [win]
-    - cargo-bundle-licenses --format yaml --output %SRC_DIR%/THIRDPARTY.yml  # [win]
 
 requirements:
   build:
