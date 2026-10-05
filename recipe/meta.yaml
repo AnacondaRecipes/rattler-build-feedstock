@@ -30,7 +30,7 @@ requirements:
     - cmake
     - make  # [unix]
   host:
-    # CBC pin so native-tls links the same openssl pkgs/main ships, not "any"
+    # linux native-tls links pkgs/main openssl. osx uses rustls (no openssl).
     - openssl {{ openssl }}  # [linux]
   run:
     - patchelf  # [linux]

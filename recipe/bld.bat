@@ -10,7 +10,7 @@ REM path too long for pixi_config subpackage, https://github.com/prefix-dev/pixi
 set CARGO_HOME=C:\.cargo
 md %CARGO_HOME%
 
-REM native-tls (not rustls) so we do not vendor aws-lc; performance = jemalloc
+REM native-tls = Schannel (TLS 1.3). rustls is only needed on macOS (SecureTransport).
 cargo auditable install --locked --no-default-features --features native-tls,recipe-generation,s3,sigstore,performance --bin rattler-build --root %PREFIX% --path . --no-track
 if errorlevel 1 exit 1
 
