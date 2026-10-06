@@ -1,5 +1,5 @@
 {% set name = "rattler-build" %}
-{% set version = "0.55.1" %}
+{% set version = "0.76.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,39 +7,48 @@ package:
 
 source:
   url: https://github.com/prefix-dev/rattler-build/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: eba4ab0caac256190ad9386deedd9ad8870bb19640f3d05bf6aff899ce284dd2
+  sha256: 2caad9c21e3293b04ff007f883ab42f465c8e619b230baffcd2a9d88a0979071
 
 build:
   number: 0
-  script:
-    - export OPENSSL_DIR="$PREFIX"  # [unix]
-    - cargo install --locked --bin rattler-build --root ${PREFIX} --path . --no-track  # [unix]
-    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml  # [unix]
-    - cargo install --locked --bins --root %PREFIX% --path . --no-track  # [win]
-    - cargo-bundle-licenses --format yaml --output %SRC_DIR%/THIRDPARTY.yml  # [win]
+  # cargo produces a rust binary; C++ compiler is build-only (aws-lc-sys cmake).
+  # overdepending: libstdcxx / libcxx / vc14_runtime never appear in NEEDED.
+  ignore_run_exports_from:
+    - {{ compiler('cxx') }}
+  ignore_run_exports:
+    - ucrt  # [win]
 
 requirements:
   build:
     - {{ compiler('rust') }}
     - cargo-bundle-licenses
+    - cargo-auditable
     - {{ compiler('c') }}
     - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
+    # aws-lc-sys (sigstore/s3) needs a C/C++ cmake build, not only rustc
+    - cmake
+    - make  # [unix]
   host:
-    - openssl  # [linux]
+    # linux native-tls links pkgs/main openssl. osx uses rustls (no openssl).
+    - openssl {{ openssl }}  # [linux]
   run:
     - patchelf  # [linux]
 
-tests:
+test:
   files:
-    - rattler-build --help
+    - test-recipe
   commands:
-    - pixi --help
+    - rattler-build --help
     - test ! -f ${PREFIX}/bin/generate-cli-docs  # [unix]
-    # check that we can fetch the sourcecode for slepc
+    - test -f $PREFIX/share/zsh/site-functions/_rattler-build  # [unix]
+    - test -f $PREFIX/share/bash-completion/completions/rattler-build  # [unix]
+    - test -f $PREFIX/share/fish/vendor_completions.d/rattler-build.fish  # [unix]
+    # 0.55.1 already ran this; it is the only test that rattler-build can
+    # download a remote source. conda-forge dropped it; we keep it because
+    # the slepc tarball still returns HTTP 200 and PBP workers can fetch.
     - rattler-build build --recipe ./test-recipe/check.yaml  # [unix]
     - rattler-build build --recipe ./test-recipe/check.yaml --output-dir %PREFIX%/out  # [win]
-
 
 about:
   home: https://github.com/prefix-dev/rattler-build
@@ -47,7 +56,7 @@ about:
   doc_url: https://rattler.build
   summary: rattler-build is the universal conda package builder for Windows, macOS and Linux
   description: |
-    The rattler-build tooling and library creates cross-platform relocatable binaries / packages 
+    The rattler-build tooling and library creates cross-platform relocatable binaries / packages
     from a simple recipe format.
     The recipe format is heavily inspired by conda-build and boa, and the output of a regular
     rattler-build run is a package that can be installed using mamba, conda or rattler.
@@ -57,4 +66,3 @@ about:
     - THIRDPARTY.yml
     - CONDA_BUILD_LICENSE.txt
   license_family: BSD
-
