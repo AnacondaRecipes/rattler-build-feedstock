@@ -11,6 +11,12 @@ source:
 
 build:
   number: 0
+  # win-arm64: aws-lc-sys (s3/sigstore) vendors AWS-LC, whose CMakeLists.txt
+  # hard-requires the ClangCL toolset for Windows/ARM64 assembly ("AWS-LC
+  # Windows/ARM64 assembly code requires ClangCL") - plain MSVC is rejected.
+  # No clang-cl toolchain is wired into this recipe yet, so skip for now;
+  # rattler-build has never shipped on win-arm64, so this isn't a regression.
+  skip: True  # [win and arm64]
   # cargo produces a rust binary; C++ compiler is build-only (aws-lc-sys cmake).
   # overdepending: libstdcxx / libcxx / vc14_runtime never appear in NEEDED.
   ignore_run_exports_from:
