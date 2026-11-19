@@ -7,9 +7,13 @@ set AWS_LC_SYS_CMAKE_BUILDER=1
 set CARGO_PROFILE_RELEASE_LTO=thin
 
 REM AWS-LC's CMakeLists.txt requires the ClangCL toolset for win-arm64
-REM assembly; plain MSVC is rejected ("Windows/ARM64 assembly code
-REM requires ClangCL"). clang-cl is a drop-in cl.exe replacement.
+REM assembly ("Windows/ARM64 assembly code requires ClangCL"); the MSVC
+REM "Visual Studio" generator needs that as an MSBuild toolset plugin,
+REM which isn't available here, so use aws-lc-sys's Ninja path instead
+REM (cmake_builder.rs skips the ClangCL toolset requirement when
+REM CMAKE_GENERATOR=Ninja) - it only needs clang-cl.exe + ninja on PATH.
 if "%target_platform%" == "win-arm64" set CC=clang-cl
+if "%target_platform%" == "win-arm64" set CMAKE_GENERATOR=Ninja
 
 REM path too long for pixi_config subpackage, https://github.com/prefix-dev/pixi/issues/3691
 set CARGO_HOME=C:\.cargo

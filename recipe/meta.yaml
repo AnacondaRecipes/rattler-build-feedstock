@@ -30,8 +30,13 @@ requirements:
     - cmake
     - make  # [unix]
     # win-arm64: AWS-LC's CMakeLists.txt rejects plain MSVC for ARM64
-    # assembly and requires clang-cl (see bld.bat CC=clang-cl).
+    # assembly and needs clang-cl. The MSVC "Visual Studio" generator also
+    # requires the ClangCL MSBuild toolset plugin, which isn't available as
+    # a conda package here, so aws-lc-sys is steered onto its Ninja path
+    # instead (CC=clang-cl + CMAKE_GENERATOR=Ninja in bld.bat), which only
+    # needs clang-cl.exe and ninja on PATH.
     - clang  # [win and arm64]
+    - ninja  # [win and arm64]
   host:
     # linux native-tls links pkgs/main openssl. osx uses rustls (no openssl).
     - openssl {{ openssl }}  # [linux]
