@@ -15,6 +15,14 @@ REM CMAKE_GENERATOR=Ninja) - it only needs clang-cl.exe + ninja on PATH.
 if "%target_platform%" == "win-arm64" set CC=clang-cl
 if "%target_platform%" == "win-arm64" set CMAKE_GENERATOR=Ninja
 
+REM win-arm64: croot's deep, timestamped build path pushes aws-lc-sys's
+REM nested jitterentropy object paths past Windows' 260-char MAX_PATH /
+REM CMake's 250-char CMAKE_OBJECT_PATH_MAX (neither cmake nor MSVC's
+REM lib.exe/link.exe are long-path aware - no workaround upstream, see
+REM aws/aws-lc-rs#780). Relocate CARGO_TARGET_DIR to a short path.
+if "%target_platform%" == "win-arm64" set CARGO_TARGET_DIR=C:\clb
+if "%target_platform%" == "win-arm64" md %CARGO_TARGET_DIR%
+
 REM path too long for pixi_config subpackage, https://github.com/prefix-dev/pixi/issues/3691
 set CARGO_HOME=C:\.cargo
 md %CARGO_HOME%
