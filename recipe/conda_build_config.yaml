@@ -5,3 +5,9 @@ cxx_compiler:      # [win]
   - vs2022         # [win]
 c_stdlib_version:  # [win]
   - 2022.14        # [win]
+# rattler-build 0.78.0+ requires rustc >=1.98; aggregate's global CBC still
+# pins rust_compiler_version to 1.96.0, so override it here.
+rust_compiler_version:
+  - 1.99.1
+rust_gnu_compiler_version:  # [win]
+  - 1.99.1                 # [win]
